@@ -30,7 +30,7 @@ const BRICK_W = 80;
 const BRICK_H = 30;
 const BRICK_GAP = 2;
 const BRICK_COLUMNS = 10;
-const BRICK_ROWS = 8;
+const BRICK_ROWS = 10;
 var brickGrid = [];
 brickInitiate();
 
@@ -155,7 +155,12 @@ function drawAll(){
     var ballBrickCol = Math.floor(ballX / BRICK_W );
     var ballBrickRow = Math.floor(ballY / BRICK_H );
 
-    colourText(ballBrickCol + " ," + ballBrickRow,ballX,ballY,'yellow');
+    colourText(mouseBrickCol + " ," + mouseBrickRow,mouseX,mouseY,'yellow');
+
+ 
+    if (ballBrickCol >= 0 && ballBrickRow >= 0 && ballBrickCol < BRICK_COLUMNS && ballBrickRow < BRICK_ROWS){
+    	removeBrick(ballBrickCol,ballBrickRow);
+    }
 
     
 
@@ -183,12 +188,14 @@ function createArray(length) {
 
 function brickInitiate(){
 
-	brickGrid = createArray(BRICK_ROWS,BRICK_COLUMNS);
+	brickGrid = createArray(BRICK_COLUMNS,BRICK_ROWS);
 
 	//console.log(brickGrid);
 
-	for (var i = 0; i < BRICK_ROWS; i++){
-		for (var j = 0; j < BRICK_COLUMNS; j++){
+	for (var i = 0; i < BRICK_COLUMNS; i++){
+
+		for (var j = 0; j < BRICK_ROWS; j++){
+
 			brickGrid[i][j] = true;
 		}
 	}
@@ -196,7 +203,7 @@ function brickInitiate(){
 
 function removeBrick(column,row){
 	
-	brickGrid[column][row] = false;
+	brickGrid[row][column] = false;
 
 	
 }
@@ -204,13 +211,13 @@ function removeBrick(column,row){
 function drawBricks() {
 	
 
-	for (var rowNum = 0; rowNum < BRICK_ROWS; rowNum++){
+	for (var colNum = 0; colNum < BRICK_COLUMNS; colNum++){
 
 		
-		for (var i = 0; i < BRICK_COLUMNS; i++) {
+		for (var i = 0; i < BRICK_ROWS; i++) {
 
-			if(brickGrid[rowNum][i]){
-				colourRect(BRICK_W*i,BRICK_H*rowNum,BRICK_W - BRICK_GAP,BRICK_H - BRICK_GAP,'blue');
+			if(brickGrid[colNum][i]){
+				colourRect(BRICK_W*i,BRICK_H*colNum,BRICK_W - BRICK_GAP,BRICK_H - BRICK_GAP,'blue');
 			}
 		}
 
