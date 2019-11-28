@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+</head>
+
+<body>
+	
+<canvas id="gameCanvas" width="800" height = "600"></canvas>
+
+</body>
+
+
+<script>
+
+var ballX = 75;
+var ballY = 75;
+
+var ballVelocityX = 5;
+var ballVelocityY = 7;
+
+
+
+const PADDLE_WIDTH = 100;
+const PADDLE_THICKNESS = 10;
+const PADDLE_DIST_FROM_BOTTOM = 50;
+
+const BRICK_W = 80;
+const BRICK_H = 30;
+const BRICK_GAP = 2;
+const BRICK_COLUMNS = 10;
+const BRICK_ROWS = 8;
+var brickGrid = [];
+brickInitiate();
+
+
+var paddleX = 400;
+
+var canvas, canvasContext;
+var mouseX,mouseY;
+
+
+
+
+function updateMousePos(evt){
+
+	var rect = canvas.getBoundingClientRect();
+	var root = document.documentElement;
+
+	mouseX = evt.clientX - rect.left - root.scrollLeft;
+	mouseY = evt.clientY - rect.top - root.scrollTop;
+
+	paddleX = mouseX - PADDLE_WIDTH/2;
+
+}
+
+window.onload = function() {
+	canvas = document.getElementById('gameCanvas');
+	canvasContext = canvas.getContext('2d');
+
+
+	var framesPerSecond = 50;
+	setInterval(updateAll, 1000/framesPerSecond);
+
+
+	canvas.addEventListener('mousemove',updateMousePos);
+
+
+}
+
+
+function updateAll(){
+
+	moveAll();
+	drawAll();
+
+
+}
+
+
+function ballReset(){
+	ballX = canvas.width/2;
+	ballY = canvas.height/2;
+
+	ballVelocityX
+}
+
+
+function moveAll(){
+	ballX+=ballVelocityX;
+	ballY+=ballVelocityY;
+
+	if (ballX < 0){			//left 
+		ballVelocityX = -ballVelocityX;
+	}
+
+	if (ballX >= canvas.width){		//right
+		ballVelocityX = -ballVelocityX;
+	}
+
+	if (ballY < 0){					//top
+		ballVelocityY = -ballVelocityY;
+	}
+
+	if (ballY > canvas.height){		//bottom
+		ballReset();
+
+	}
+
+	if (ballHitsPaddle()){
+
+		ballVelocityY = -ballVelocityY;
+
+
+		var centerOfPaddleX = paddleX + PADDLE_WIDTH/2;
+		var ballDistFromPaddleCenterX = ballX - centerOfPaddleX;
+
+		ballVelocityX = ballDistFromPaddleCenterX / 2;
+
+		//console.log(brickGrid);
+
+	}
+
+
+	
+}
+
+
+function ballHitsPaddle(){
+	var paddleTopEdgeY  = canvas.height - PADDLE_DIST_FROM_BOTTOM;
+	var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS;
+	var paddleLeftEdgeX  = paddleX;
+	var paddleRightEdgeX = paddleX + PADDLE_WIDTH;
+
+	if (ballY > paddleTopEdgeY && ballY < paddleBottomEdgeY &&
+		ballX > paddleLeftEdgeX && ballX < paddleRightEdgeX ){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function drawAll(){
+
+	colourRect(0,0,canvas.width,canvas.height,'black');
+	colourBall('white',ballX,ballY);
+	drawPaddle();
+	drawBricks();
+
+	var mouseBrickCol = Math.floor(mouseX/BRICK_W );
+    var mouseBrickRow = Math.floor(mouseY/BRICK_H );
+
+
+    var ballBrickCol = Math.floor(ballX / BRICK_W );
+    var ballBrickRow = Math.floor(ballY / BRICK_H );
+
+    colourText(ballBrickCol + " ," + ballBrickRow,ballX,ballY,'yellow');
+
+    
+
+}
+
+
+function brickReset(){
+	for (var i = 0; i< BRICK_COLUMNS;i++){
+		brickGrid[i] = true;
+	}
+}
+
+
+function createArray(length) {
+    var arr = new Array(length || 0),
+        i = length;
+
+    if (arguments.length > 1) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        while(i--) arr[length-1 - i] = createArray.apply(this, args);
+    }
+
+    return arr;
+}
+
+function brickInitiate(){
+
+	brickGrid = createArray(BRICK_ROWS,BRICK_COLUMNS);
+
+	//console.log(brickGrid);
+
+	for (var i = 0; i < BRICK_ROWS; i++){
+		for (var j = 0; j < BRICK_COLUMNS; j++){
+			brickGrid[i][j] = true;
+		}
+	}
+}
+
+function removeBrick(column,row){
+	
+	brickGrid[column][row] = false;
+
+	
+}
+
+function drawBricks() {
+	
+
+	for (var rowNum = 0; rowNum < BRICK_ROWS; rowNum++){
+
+		
+		for (var i = 0; i < BRICK_COLUMNS; i++) {
+
+			if(brickGrid[rowNum][i]){
+				colourRect(BRICK_W*i,BRICK_H*rowNum,BRICK_W - BRICK_GAP,BRICK_H - BRICK_GAP,'blue');
+			}
+		}
+
+
+	}
+
+
+}
+
+
+function colourRect(topLeftX,topLeftY,width,height,colour){
+
+	canvasContext.fillStyle = colour;
+	canvasContext.fillRect(topLeftX,topLeftY,width,height);
+
+
+}
+
+
+function drawPaddle(){
+	canvasContext.fillStyle = 'white';
+	canvasContext.fillRect(paddleX, canvas.height - PADDLE_DIST_FROM_BOTTOM , PADDLE_WIDTH, PADDLE_THICKNESS);
+}
+
+function colourBall(colour,x,y){
+	canvasContext.fillStyle = colour;
+	canvasContext.beginPath();
+	canvasContext.arc(x, y, 10, 0, 2 * Math.PI,true);
+	canvasContext.fill();
+}
+
+function colourText(words,x,y,colour){
+	canvasContext.fillStyle = colour;
+	canvasContext.fillText(words, x, y);
+}
+
+</script>
+
+
+</html>
