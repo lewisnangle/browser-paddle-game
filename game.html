@@ -14,11 +14,11 @@
 
 <script>
 
-var ballX = 75;
-var ballY = 75;
+var ballX = 400;
+var ballY = 400;
 
-var ballVelocityX = 5;
-var ballVelocityY = 7;
+var ballVelocityX = 4;
+var ballVelocityY = 5;
 
 
 
@@ -28,10 +28,11 @@ const PADDLE_DIST_FROM_BOTTOM = 50;
 
 const BRICK_W = 80;
 const BRICK_H = 30;
-const BRICK_GAP = 2;
+const BRICK_GAP = 4;
 const BRICK_COLUMNS = 10;
 const BRICK_ROWS = 10;
 var brickGrid = [];
+var brickCount = BRICK_ROWS * BRICK_COLUMNS;
 brickInitiate();
 
 
@@ -75,6 +76,21 @@ function updateAll(){
 	moveAll();
 	drawAll();
 
+	if (brickCount == 0){
+		
+
+		var r = confirm("You Win! Press a button to play again");
+
+		if (r == true) {
+		  brickReset();
+		} else {
+		  window.close();	
+			}
+	}
+
+
+
+
 
 }
 
@@ -86,8 +102,7 @@ function ballReset(){
 	ballVelocityX
 }
 
-
-function moveAll(){
+function moveBall(){
 	ballX+=ballVelocityX;
 	ballY+=ballVelocityY;
 
@@ -105,6 +120,7 @@ function moveAll(){
 
 	if (ballY > canvas.height){		//bottom
 		ballReset();
+		brickReset();
 
 	}
 
@@ -121,7 +137,48 @@ function moveAll(){
 		//console.log(brickGrid);
 
 	}
+}
 
+
+
+function ballHitsBrickHandling(){
+
+
+    var ballBrickCol = Math.floor(ballX / BRICK_W );
+    var ballBrickRow = Math.floor(ballY / BRICK_H );
+
+
+
+    if (ballBrickCol >= 0 && ballBrickRow >= 0 && ballBrickCol < BRICK_COLUMNS && ballBrickRow < BRICK_ROWS){
+
+    	if(brickGrid[ballBrickRow][ballBrickCol]){	//brick collison
+
+    		var prevBallX = ballX - ballVelocityX;			//previous ballX position
+    		var prevBallY = ballY - ballVelocityY;			//previous ballY position
+    		var prevBrickCol = Math.floor(prevBallX / BRICK_W );	//previous column ball was in
+    		var prevBrickRow = Math.floor(prevBallX / BRICK_H );	//previous row ball was in
+
+    		//check whether ball hits top or side of brick and change direction accordingly
+    		if(prevBrickCol!=ballBrickCol){
+    			ballVelocityX=-ballVelocityX;
+    		} else {
+    			if(prevBrickRow!=ballBrickRow){
+    				ballVelocityY=-ballVelocityY;
+    			}
+    		}
+    		
+
+    		removeBrick(ballBrickCol,ballBrickRow);
+    	}
+    	
+    }
+}
+
+
+function moveAll(){
+	
+	moveBall();
+	ballHitsBrickHandling();
 
 	
 }
@@ -141,36 +198,29 @@ function ballHitsPaddle(){
 	}
 }
 
+
+function drawMouseCoordinates(){
+
+	var mouseBrickCol = Math.floor(mouseX/BRICK_W );
+    var mouseBrickRow = Math.floor(mouseY/BRICK_H );
+
+    colourText(mouseBrickCol + " ," + mouseBrickRow,mouseX,mouseY,'yellow');
+}
+
 function drawAll(){
 
 	colourRect(0,0,canvas.width,canvas.height,'black');
 	colourBall('white',ballX,ballY);
 	drawPaddle();
 	drawBricks();
-
-	var mouseBrickCol = Math.floor(mouseX/BRICK_W );
-    var mouseBrickRow = Math.floor(mouseY/BRICK_H );
-
-
-    var ballBrickCol = Math.floor(ballX / BRICK_W );
-    var ballBrickRow = Math.floor(ballY / BRICK_H );
-
-    colourText(mouseBrickCol + " ," + mouseBrickRow,mouseX,mouseY,'yellow');
-
- 
-    if (ballBrickCol >= 0 && ballBrickRow >= 0 && ballBrickCol < BRICK_COLUMNS && ballBrickRow < BRICK_ROWS){
-    	removeBrick(ballBrickCol,ballBrickRow);
-    }
-
-    
+	drawMouseCoordinates();    
 
 }
 
 
 function brickReset(){
-	for (var i = 0; i< BRICK_COLUMNS;i++){
-		brickGrid[i] = true;
-	}
+	brickInitiate();
+	brickCount = BRICK_COLUMNS * BRICK_ROWS;
 }
 
 
@@ -202,8 +252,12 @@ function brickInitiate(){
 }
 
 function removeBrick(column,row){
+
 	
 	brickGrid[row][column] = false;
+
+	brickCount--;
+	
 
 	
 }
